@@ -14,6 +14,85 @@ saved as an image file and shared with the receiver.
 */
 import React, { useState, useRef } from "react";
 import QRCode from "qrcode.react";
+import Barcode from "react-barcode";
+
+function createBankBarcode(
+  version: string = "4",
+  iban: string,
+  amountInEuro: string,
+  reference: string,
+) {
+  const today = new Date();
+  // Format date in YYMMDD format
+  const lastTwoDigitsOfYear = today.getFullYear().toString().substr(-2);
+  const paddedDate = (today.getDate() < 10 ? "0" : "") + today.getDate();
+  const paddedMonth = (today.getMonth() < 9 ? "0" : "") + (today.getMonth() + 1);
+  const date = `${lastTwoDigitsOfYear}${paddedMonth}${paddedDate}`;
+
+  // IBAN should be 16 digits long and not contain any spaces and characters
+  const ibanWithoutSpaces = iban.replace(/\s/g, "");
+  const ibanWithoutSpacesAndCharacters = ibanWithoutSpaces.replace(/[^\d]/g, "");
+
+  // Amoung should be 6 digits long and not contain any spaces and characters
+  const amountWithoutSpaces = amountInEuro.replace(/\s/g, "");
+  const amountWithoutSpacesAndCharacters = amountWithoutSpaces.replace(/[^\d]/g, "");
+  const amount = `${amountWithoutSpacesAndCharacters.padStart(6, "0")}00`;
+
+  // Reference should be 20 digits long and not contain any spaces and characters
+  const referenceWithoutSpaces = reference.replace(/\s/g, "");
+  const referenceWithoutSpacesAndCharacters = referenceWithoutSpaces.replace(/[^\d]/g, "");
+  const referenceNumber = referenceWithoutSpacesAndCharacters.padStart(23, "0");
+
+  // Create result.
+  return `${version}${ibanWithoutSpacesAndCharacters}${amount}${referenceNumber}${date}`;
+}
+
+function convertMmToPx(mm: number) {
+  const mmToPx = 96 / 25.4;
+  const px = mm * mmToPx;
+  // Return as whole number and string.
+  return px.toFixed(0);
+}
+
+function findSvgAndDownloadAsPng() {
+  const svg = document.querySelector("svg");
+
+  // Do nothing if there is no SVG
+  if (!svg) {
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Do nothing if there is no canvas
+  if (!ctx) {
+    return;
+  }
+
+  // Set svg size to 105mm x 12.7mm
+  // svg.setAttribute("width", convertMmToPx(105));
+  // svg.setAttribute("height", convertMmToPx(12.7));
+
+  // Set canvas size to SVG size
+  canvas.width = svg.clientWidth;
+  canvas.height = svg.clientHeight;
+
+  const data = new XMLSerializer().serializeToString(svg);
+  const DOMURL = window.URL || window.webkitURL || window;
+  const img = new Image();
+  const svgBlob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
+  const url = DOMURL.createObjectURL(svgBlob);
+  img.onload = function () {
+    ctx.drawImage(img, 0, 0);
+    const png = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.download = "barcode.png";
+    a.href = png;
+    a.click();
+  };
+  img.src = url;
+}
 
 function App() {
   const [iban, setIban] = useState("");
@@ -22,14 +101,24 @@ function App() {
   const [reference, setReference] = useState("");
   const [name, setName] = useState("");
   const [qrCode, setQrCode] = useState("");
-  const canvasRef = useRef(null);
+  const [barCode, setBarcode] = useState("");
+  // const canvasRef = useRef(null);
 
   const generateQrCode = () => {
+    // Barcode generation
+    const barcode = createBankBarcode("4", iban, amount, reference);
+    setBarcode(barcode);
+
     const today = new Date();
     // Format date in YYYY-MM-DD format
     // const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     const qrCodeString = `BCD\n001\n1\nSCT\n${bic}\n${name}\n${iban.replace(/\s/g, '')}\nEUR${amount}\n\n${reference}\n\nReqdExctnDt/2023-01-01`;
     setQrCode(qrCodeString);
+  };
+
+  const downloadBarcode = () => {
+    // SVG to PNG conversion
+    findSvgAndDownloadAsPng();
   };
 
   const downloadQrCode = () => {
@@ -104,6 +193,7 @@ function App() {
           </button>
         </div>
       </div>
+      <hr className="my-4" />
       {qrCode && (
         <QRCode
           id="qr-code"
@@ -113,15 +203,29 @@ function App() {
           includeMargin={true}
           renderAs={"canvas"}
         />
-        )}
-        {qrCode && <div className="form-group">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={downloadQrCode}
-          >
-            Download QR Code
-          </button>
-        </div>}
+      )}
+      {qrCode && <div className="form-group">
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={downloadQrCode}
+        >
+          Download QR Code
+        </button>
+    </div>}
+      <hr className="my-4" />
+      {barCode && <div className="w-full flex justify-center">
+        <Barcode value={barCode} displayValue={false} width={2} format="CODE128" />
+      </div> }
+      {/* Download barcode */}
+      {barCode && <div className="form-group">
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={downloadBarcode}
+        >
+          Download Barcode
+        </button>
+      </div>}
+      <hr className="my-4" />
     </div>
   );
 }
