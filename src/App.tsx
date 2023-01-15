@@ -174,7 +174,7 @@ function App() {
             type="text"
             id="bic"
             value={bic}
-            onChange={(e) => setBic(e.target.value)}
+            onChange={(e) => setBic(e.target.value.toUpperCase())}
           />
         </div>
         <div className="form-group">
