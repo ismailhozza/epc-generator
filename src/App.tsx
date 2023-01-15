@@ -242,6 +242,12 @@ function App() {
         </div>}
         <hr className="my-4" />
       </div>
+      {/* Copyright */}
+      <div className="text-center mt-4">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          &copy; {new Date().getFullYear()} <a href="https://twitter.com/ismailhozza" className="text-gray-600 dark:text-gray-400 hover:underline">@ismailhozza</a>. All rights reserved.
+        </p>
+      </div>
     </div>
   );
 }
