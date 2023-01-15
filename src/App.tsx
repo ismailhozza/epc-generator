@@ -33,10 +33,20 @@ function createBankBarcode(
   const ibanWithoutSpaces = iban.replace(/\s/g, "");
   const ibanWithoutSpacesAndCharacters = ibanWithoutSpaces.replace(/[^\d]/g, "");
 
-  // Amoung should be 6 digits long and not contain any spaces and characters
+  // Amount should be 6 digits long and not contain any spaces and characters
   const amountWithoutSpaces = amountInEuro.replace(/\s/g, "");
-  const amountWithoutSpacesAndCharacters = amountWithoutSpaces.replace(/[^\d]/g, "");
-  const amount = `${amountWithoutSpacesAndCharacters.padStart(6, "0")}00`;
+  const amountParts = amountWithoutSpaces.replace(',', '.').split('.');
+  // const amountWithoutSpacesAndCharacters = amountWithoutSpaces.replace(/[^\d]/g, "");
+  
+  // Split amount into integer and decimal part
+  const amountIntegerPart = (amountParts[0] ?? "0").replace(/[^\d]/g, "");
+  const amountDecimalPart = (amountParts[1] || "00").replace(/[^\d]/g, "");
+
+  // Pad decimal part to 2 digits
+  const amountDecimalPartPadded = amountDecimalPart.padEnd(2, "0");
+
+  const amount = `${amountIntegerPart.padStart(6, "0")}${amountDecimalPartPadded}`;
+  console.log('amount:', amount)
 
   // Reference should be 20 digits long and not contain any spaces and characters
   const referenceWithoutSpaces = reference.replace(/\s/g, "");
@@ -108,10 +118,10 @@ function App() {
     const barcode = createBankBarcode("4", iban, amount, reference);
     setBarcode(barcode);
 
-    const today = new Date();
-    // Format date in YYYY-MM-DD format
-    // const date = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-    const qrCodeString = `BCD\n001\n1\nSCT\n${bic}\n${name}\n${iban.replace(/\s/g, '')}\nEUR${amount}\n\n${reference}\n\nReqdExctnDt/2023-01-01`;
+    // QR code generation
+    // Amount should be in format 123.45
+    const amountInDecimal = parseFloat(amount.replace(',', '.')).toFixed(2);
+    const qrCodeString = `BCD\n001\n1\nSCT\n${bic}\n${name}\n${iban.replace(/\s/g, '')}\nEUR${amountInDecimal}\n\n${reference}\n\nReqdExctnDt/2023-01-01`;
     setQrCode(qrCodeString);
   };
 

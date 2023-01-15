@@ -45,6 +45,7 @@ module.exports = {
       light: '#f8f9fa',
       dark: '#343a40',
       bg: '#ffffff',
+      white: '#ffffff',
     },
     extend: {},
   },
