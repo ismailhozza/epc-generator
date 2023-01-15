@@ -102,7 +102,6 @@ function App() {
   const [name, setName] = useState("");
   const [qrCode, setQrCode] = useState("");
   const [barCode, setBarcode] = useState("");
-  // const canvasRef = useRef(null);
 
   const generateQrCode = () => {
     // Barcode generation
@@ -130,9 +129,13 @@ function App() {
     link.click();
   };
 
+  const validToGenerate = () => {
+    return iban.length > 0 && bic.length > 0 && amount.length > 0 && reference.length > 0 && name.length > 0;
+  };
+
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4" >Generate EPC QR Code</h1>
+      <h1 className="text-xl font-bold mb-4 text-center" >EPC QR Code Generator</h1>
       <div className="form">
         <div className="form-group">
           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white" htmlFor="name">Receiver's Name</label>
@@ -186,46 +189,49 @@ function App() {
         </div>
         <div className="form-group">
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-success-500 hover:bg-success-700 text-white font-bold my-2 py-2 px-4 rounded"
+            disabled={!validToGenerate()}
             onClick={generateQrCode}
           >
-            Generate QR Code
+            Generate Codes
           </button>
         </div>
       </div>
       <hr className="my-4" />
-      {qrCode && (
-        <QRCode
-          id="qr-code"
-          value={qrCode}
-          size={512}
-          level={"H"}
-          includeMargin={true}
-          renderAs={"canvas"}
-        />
-      )}
-      {qrCode && <div className="form-group">
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={downloadQrCode}
-        >
-          Download QR Code
-        </button>
-    </div>}
-      <hr className="my-4" />
-      {barCode && <div className="w-full flex justify-center">
-        <Barcode value={barCode} displayValue={false} width={2} format="CODE128" />
-      </div> }
-      {/* Download barcode */}
-      {barCode && <div className="form-group">
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={downloadBarcode}
-        >
-          Download Barcode
-        </button>
+      <div className="flex flex-col justify-center items-center">
+        {qrCode && (
+          <QRCode
+            id="qr-code"
+            value={qrCode}
+            size={256} // 512 / 2 = 256
+            level={"H"}
+            includeMargin={true}
+            renderAs={"canvas"}
+          />
+        )}
+        {qrCode && <div className="form-group">
+          <button
+            className="bg-info-500 hover:bg-info-700 text-white font-bold my-2 py-2 px-4 rounded"
+            onClick={downloadQrCode}
+          >
+            Download QR Code
+          </button>
       </div>}
-      <hr className="my-4" />
+        <hr className="my-4" />
+        {barCode && <div className="w-full flex justify-center">
+          <Barcode value={barCode} displayValue={false} width={2} format="CODE128" />
+        </div> }
+        {/* Download barcode */}
+        {barCode && <div className="form-group">
+          <button
+            className="bg-info-500 hover:bg-info-700 text-white font-bold my-2 py-2 px-4 rounded"
+            onClick={downloadBarcode}
+          >
+            Download Barcode
+          </button>
+        </div>}
+        <hr className="my-4" />
+      </div>
     </div>
   );
 }
